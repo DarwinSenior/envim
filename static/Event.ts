@@ -11,6 +11,8 @@ export type CanvasEventType =
 const CanvasEventTypes = <CanvasEventType[]>[
     'resize', 'restyle', 'keypress', 'click'
 ];
+
+export const intercepted_events = ['keydown', 'mousedown', 'mousewheel'];
 export class Emitter {
     private emitter_ = new EventEmitter();
     private window_: HTMLDivElement;
@@ -39,10 +41,12 @@ export class Emitter {
             const y = Math.floor(evt.clientY/this.block_height_);
             const key = `${keyname}<${x},${y}>`;
             this.emitter_.emit('keypress', key);
-            console.log(key);
-        });
+        }, <any>{passive: true});
         window.addEventListener('resize', (evt) => {
-        })
+            const rows = Math.round(window.innerHeight/this.block_height_);
+            const cols = Math.round(window.innerWidth/this.block_width_);
+            this.emitter_.emit('resize', [cols, rows]);
+        });
     }
     setCursorSize(width: number, height: number){
         this.block_width_ = width;

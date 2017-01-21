@@ -8,7 +8,7 @@ export class Cursor {
     // set the blink time
     private blink_: boolean = true;
     // set the blink interval in ms
-    private blink_interval_: number = 500;
+    private blink_interval_: number = 1000;
     // it corresponds to the block height and block width
     private size: [number, number] = [0, 0];
     private element_: HTMLDivElement;
@@ -39,22 +39,15 @@ export class Cursor {
     }
 
     moveCursor(x: number, y: number) {
-        const [w, h] = this.size;
-        this.element_.style.top = `${y * h}px`;
-        this.element_.style.left = `${x * w}px`
+        this.element_.style.top = `${y}px`;
+        this.element_.style.left = `${x}px`
     }
 
+    static blink_class = 'blinked';
     noblink() {
-        this.blink_ = false;
+        this.element_.classList.remove(Cursor.blink_class);
     }
-    async blink() {
-        if (this.blink_) return;
-        const blink_class = 'blinked';
-        this.blink_ = true;
-        while (this.blink_) {
-            await sleep(this.blink_interval_);
-            this.element_.classList.toggle(blink_class);
-        }
-        this.element_.classList.remove(blink_class);
+    blink() {
+        this.element_.classList.add(Cursor.blink_class);
     }
 }

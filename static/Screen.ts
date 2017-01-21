@@ -43,6 +43,12 @@ export class Screen {
     // highlights: Highlights[][];
     private styles_: TextStyle[][];
     // determine the current mode of the editor
+
+    // this will be consumed, and after
+    private visualbell_: boolean;
+    // events like busy on and busy off
+    private busy_: boolean;
+
     private mode_: string;
     constructor() {
         this.default_style_ = new DefaultStyle((1 << 24) - 1, 0, (1 << 24) - 1);
@@ -53,6 +59,22 @@ export class Screen {
         this.current_style_ = Screen.nullstyle;
         this.texts_ = [];
         this.styles_ = [];
+    }
+
+    /**
+     * this function consumes a visual bell
+     * it returns false is visual bell is not set
+     * it returns true if there is a visual bell waiting
+     * to be consumed, and we also consume this visual bell
+     */
+    consume_visualbell(){
+        const visualbell = this.visualbell_;
+        this.visualbell_ = false;
+        return visualbell;
+    }
+
+    get busy(): boolean{
+        return this.busy_;
     }
 
     get cursor_shape(): string {
@@ -168,7 +190,7 @@ export class Screen {
     }
 
     set_scroll_region(top: number, bottom: number, left: number, right: number) {
-        this.scroll_region_ = [top, bottom, left, right];
+        this.scroll_region_ = [top, bottom + 1, left, right];
     }
 
     scroll(count: number) {
@@ -181,7 +203,7 @@ export class Screen {
         } else {
             // easier if use positive number
             count = -count;
-            for (let i = bottom-count-1; i >= top; i--) {
+            for (let i = bottom - count - 1; i >= top; i--) {
                 this.copyLineRange(i + count, i, left, right);
             }
             this.clearRange(top, top + count, left, right);
@@ -195,6 +217,22 @@ export class Screen {
             this.styles_[y][x + i] = this.current_style_;
         }
         this.cu_pos_ = [x + i, y];
+    }
+
+    visual_bell(){
+        this.visualbell_ = true;
+    }
+
+    bell(){
+        this.visualbell_ = true;
+    }
+
+    busy_start(){
+        this.busy_ = true;
+    }
+
+    busy_stop(){
+        this.busy_ = false;
     }
 
     private clearRange(top: number, bottom: number, left: number, right: number) {

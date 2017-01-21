@@ -3,6 +3,8 @@ import { TextStyle, DefaultStyle } from './Style'
 import { textWidth, textHeight } from './Measure'
 import { Cursor } from './Cursor'
 import { Emitter } from './Event'
+import { Visual } from './Visual'
+import * as e from 'electron'
 import * as _ from 'lodash'
 
 
@@ -30,22 +32,24 @@ export class Canvas {
 
     // we will provide event listeners to use
 
-    constructor(private screen_: Screen,
+    constructor(
+        private screen_: Screen,
         private cursor_: Cursor,
-        private emitter_: Emitter
+        private visual_: Visual,
+        private emitter_: Emitter,
     ) {
         this.window_.appendChild(this.canvas_);
-        this.canvas_.appendChild(this.cursor_.element);
+        // this.canvas_.appendChild(this.cursor_.element);
+        this.window_.appendChild(this.cursor_.element);
+        this.window_.appendChild(this.visual_.element);
+        this.emitter_.init(this.window_);
         this.window_.tabIndex = 1;
     }
 
-    // you could easily attach the window elements to the outside
     get window() {
         return this.window_;
     }
 
-    // or when the screen try to resize
-    // the update only take place when the element of the line change
     redraw(commands: any[]) {
         commands.forEach((command) => {
             const [instruction, ...args] = command;
@@ -109,7 +113,26 @@ export class Canvas {
         Canvas.testspan.textContent = content;
         return Canvas.testspan.outerHTML;
     }
-    updateLine(i: number) {
+
+    private updateContents(){
+        const new_texts = this.screen_.texts;
+        const [new_offsets, new_styles] = this.screen_.styles;
+        for (let i = 0; i < this.height_; i++) {
+            if (!_.isEqual(this.texts_[i], new_texts[i])
+                || !_.isEqual(this.styles_[i], new_styles[i])
+                || !_.isEqual(this.offsets_[i], new_offsets[i])) {
+                this.texts_[i] = new_texts[i];
+                this.styles_[i] = new_styles[i];
+                this.offsets_[i] = new_offsets[i];
+                this.updateLine(i);
+            }
+        }
+    }
+
+    /**
+     *  helper function update one line
+     */
+    private updateLine(i: number) {
         const text = this.texts_[i];
         const style = this.styles_[i];
         const offset = this.offsets_[i];
@@ -143,8 +166,35 @@ export class Canvas {
         }
     }
 
-    updateCursor() {
-        this.cursor_.moveCursor(this.screen_.cursorX, this.screen_.cursorY);
+    /*
+     * it updates the cursor position
+     * it also detects mode change,
+     * it will change the cursor shape
+     * correspond to different mode
+     */
+    private updateCursor() {
+        const x = this.screen_.cursorX;
+        const y = this.screen_.cursorY;
+        const style = window.getComputedStyle(this.rows_[y]);
+        // const left = this.block_width_ * x;
+        const left = textWidth(`${style.fontSize} ${style.fontFamily}`, x);
+        const top = this.rows_[y].offsetTop;
+        this.cursor_.moveCursor(left, top);
         this.cursor_.cursor_style = this.screen_.cursor_shape;
+    }
+
+    /*
+     * It will trigger effects including bell visual bell
+     *
+     */
+    private updateEffects() {
+        if (this.screen_.consume_visualbell()){
+            this.visual_.bell();
+        }
+        if (this.screen_.busy){
+            this.visual_.busy();
+        } else {
+            this.visual_.available();
+        }
     }
 }

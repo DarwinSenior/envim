@@ -1,6 +1,7 @@
 import { Screen } from './Screen'
 import { Canvas } from './Canvas'
 import { Cursor } from './Cursor'
+import { Visual } from './Visual'
 import { Emitter } from './Event'
 import { createNvim } from './Process'
 import * as e from 'electron'
@@ -13,8 +14,8 @@ function eventFeedback(
 ) {
 
     emitter.on('resize', ([width, height]: [number, number]) => {
-        console.log(width, height);
-        nvim.emit(`resize ${width} ${height}`, true);
+        // nvim.emit(`resize ${width} ${height}`, true);
+        nvim.uiTryResize(width, height, false);
     });
     let keypresstack = {
         stack: [],
@@ -36,7 +37,6 @@ function attachUI(
     width: number,
     height: number
 ) {
-    nvim.uiAttach(width, height, true);
     nvim.on('notification', (command: string, args: RPCValue[]) => {
         if (command == 'redraw') {
             canvas.redraw(args);
