@@ -12,6 +12,7 @@ export class Cursor {
     // it corresponds to the block height and block width
     private size: [number, number] = [0, 0];
     private element_: HTMLDivElement;
+    private cursor_style_: string;
 
     constructor() {
         // this will keep blinking until it is detached from the dom
@@ -25,7 +26,9 @@ export class Cursor {
 
     static cursor_styles = ['block', 'underline', 'ibeam', 'custom'];
     set cursor_style(style: string) {
-        if (_.includes(Cursor.cursor_styles, style)) {
+        if (style != this.cursor_style_
+            && _.includes(Cursor.cursor_styles, style)) {
+                this.cursor_style_ = style;
             Cursor.cursor_styles.forEach(cur_style =>
                 this.element_.classList.remove(cur_style));
             this.element_.classList.add(style);

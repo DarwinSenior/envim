@@ -4,7 +4,7 @@ import { Cursor } from './NvimEditor/Cursor'
 import { Visual } from './NvimEditor/Visual'
 import { Emitter } from './NvimEditor/Event'
 import { createNvim } from './NvimEditor/Process'
-import { Nvim, RPCValue } from 'promised-neovim-client'
+import { Nvim, RPCValue } from 'neovim-client/promise'
 import './style.css'
 import * as e from 'electron'
 
@@ -41,16 +41,17 @@ function attachUI(
             canvas.redraw(args);
         }
     });
-    const current_window = e.remote.getCurrentWindow();
 
     window.onbeforeunload = () => {
         nvim.quit();
     }
-    canvas.window.addEventListener('resize', function fn(evt: CustomEvent){
-        let [width, height] = evt.detail;
-        current_window.setContentSize(width, height);
-        // canvas.window.removeEventListener('resize', fn);
-    });
+    // canvas.window.addEventListener('resize', function fn(evt: CustomEvent){
+    //     let [width, height] = evt.detail;
+    //     current_window.setContentSize(width, height);
+    //     // canvas.window.removeEventListener('resize', fn);
+    // });
+
+    const current_window = e.remote.getCurrentWindow();
     nvim.on('disconnect', () => {
         window.onbeforeunload = undefined;
         nvim.removeAllListeners();
@@ -73,7 +74,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.body.appendChild(editorCanvas.window);
     editorCursor.blink();
-    window['visuals'] = editorVisual;
+    window['_visual'] = editorVisual;
+    window['_screen'] = editorScreen;
+    window['_cursor'] = editorCursor;
+    window['_canvas'] = editorCanvas;
 
     e.ipcRenderer.send('render-ready');
     e.ipcRenderer.on('nvim-start', async (evt, [width, height]: [number, number]) => {

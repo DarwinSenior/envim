@@ -42,7 +42,7 @@ export class Canvas {
         this.window_.appendChild(this.cursor_.element);
         this.window_.appendChild(this.visual_.element);
         this.emitter_.init(this.window_);
-        this.window_.tabIndex = 1;
+        this.window_.tabIndex = 0;
     }
 
     get window() {
@@ -63,13 +63,13 @@ export class Canvas {
         this.updateCursor();
         this.updateContents();
         this.updateEffects();
-        // this.emitter_.fire('redraw', [new_texts, new_styles]);
     }
 
     private updateScreen() {
         // in this case, we probably need to redraw everything.
         // we first calcuate the size of our elements
-        if (this.height_ != this.screen_.height || this.width_ != this.screen_.width) {
+        if (this.height_ != this.screen_.height
+            || this.width_ != this.screen_.width) {
             this.height_ = this.screen_.height;
             this.width_ = this.screen_.width;
 
@@ -78,23 +78,17 @@ export class Canvas {
             this.rows_.length = 0;
             for (let i = 0; i < this.height_; i++) {
                 let row = <HTMLDivElement>document.createElement('x-row');
+                row.innerText = _.repeat(' ', this.width_);
+                row.style.cssText = this.screen_.default_style.toString();
                 this.rows_.push(row);
             }
             this.rows_.forEach(row => this.canvas_.appendChild(row));
         }
-        // update the window size after we are done with this
-        // since there is a possibility that the block size will
-        // also be updated
-        setTimeout(() => this.window_.dispatchEvent(new CustomEvent('resize', {
-            detail: [
-                Math.floor(this.width_ * this.block_width_),
-                Math.floor(this.height_ * this.block_height_)
-            ]})), 0);
     }
     static testspan = <HTMLSpanElement>document.createElement('span');
     static spantext(content: string, style: TextStyle) {
         Canvas.testspan.style.cssText = style.toString();
-        Canvas.testspan.textContent = content;
+        Canvas.testspan.innerText = content;
         return Canvas.testspan.outerHTML;
     }
 
@@ -144,10 +138,14 @@ export class Canvas {
             this.externalcss_ = css;
             this.block_width_ = textWidth(css.fontStyle, 1);
             this.block_height_ = css.lineHeight;
-            this.cursor_.setCursorSize(this.block_width_, this.block_height_);
-            this.emitter_.setCursorSize(this.block_width_, this.block_height_);
-            this.window_.style.width = `${this.block_width_ * this.width_}px`;
-            this.window_.style.height = `${this.block_height_ * this.height_}px`;
+            this.cursor_.setCursorSize(
+                this.block_width_,
+                this.block_height_
+            );
+            this.emitter_.setCurrentSize(
+                this.block_width_,
+                this.block_height_,
+            );
         }
     }
 

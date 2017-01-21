@@ -6,6 +6,7 @@
   "dependencies": {
     "electron": "^1.4.15",
     "lodash": "^4.17.4",
+    "neovim-client": "^2.1.0",
     "promised-neovim-client": "^2.0.2",
     "typescript": "^2.1.5",
     "webpack": "^1.14.0"

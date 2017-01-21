@@ -42,9 +42,13 @@ export function keyevt2nvimkey(evt: KeyboardEvent): string {
     // ]) || general_keys(evt.keyCode, evt.shiftKey, evt.ctrlKey, evt.metaKey, evt.altKey);
 }
 
-const mousekeyname = ['LeftMouse', 'MiddleMouse', 'RightMouse'];
+const mousekeyname = ['Left', 'Middle', 'Right'];
 export function mouseevt2nvimkey(evt: MouseEvent): string {
-    return general_keys(mousekeyname[evt.button], evt);
+    let nvimmousetype = 'Mouse';
+    if (evt.type == 'mousemove'){
+        nvimmousetype = 'Drag';
+    }
+    return general_keys(mousekeyname[evt.button] + nvimmousetype, evt);
 }
 
 export function mousewhellevt2nvimkey(evt: MouseWheelEvent): string {

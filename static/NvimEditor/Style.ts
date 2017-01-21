@@ -29,7 +29,7 @@ export class ExternalStyle {
     }
 }
 
-export function fromAttribute2Style(attr: Object): TextStyle {
+export function fromAttribute2Style(attr: Object, defaultstyle: DefaultStyle): TextStyle {
     return new TextStyle(
         attr['foreground'] || null,
         attr['background'] || null,
@@ -39,6 +39,7 @@ export function fromAttribute2Style(attr: Object): TextStyle {
         attr['bold'] || false,
         attr['underline'] || false,
         attr['undercurl'] || false,
+        defaultstyle,
     );
 }
 export class DefaultStyle {
@@ -64,18 +65,21 @@ export class TextStyle {
         private italic: boolean,
         private bold: boolean,
         private underline: boolean,
-        private undercurl: boolean) { }
+        private undercurl: boolean,
+        private defaultstyle: DefaultStyle
+    ) {
+        if (this.undercurl){
+            console.log(this)
+        }
+    }
     toString(): string {
         let attrs = [];
-        if (this.foreground) {
-            attrs.push(`color: ${color2string(this.foreground)}`);
-        }
-        if (this.background) {
-            attrs.push(`background-color: ${color2string(this.background)}`);
-        }
-        if (this.special) {
-            attrs.push(`text-decoration - color: ${color2string(this.special)}`);
-        }
+        let foreground = this.foreground || this.defaultstyle.foreground;
+        attrs.push(`${this.reverse ? 'background-color' : 'color'}: ${color2string(foreground)}`);
+        let background = this.background || this.defaultstyle.background;
+        attrs.push(`${!this.reverse ? 'background-color' : 'color'}: ${color2string(background)}`);
+        let special = this.special || this.defaultstyle.special;
+        attrs.push(`text-decoration - color: ${color2string(special)}`);
         if (this.italic) {
             attrs.push('font-style: italic');
         }
@@ -86,10 +90,9 @@ export class TextStyle {
             attrs.push('text-decoration: underline');
         }
         if (this.undercurl) {
-            attrs.push('text-decoration-style: wavy');
+            attrs.push('text-decoration-style: dashed');
         }
         if (this.reverse) {
-            attrs.push('filter: invert(100%)');
         }
         return attrs.join(';');
     }

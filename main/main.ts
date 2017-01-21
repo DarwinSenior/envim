@@ -9,7 +9,7 @@ export async function sleep(ms: number) {
 
 async function main() {
     const browser = new BrowserWindow({
-        // frame: false,
+        webPreferences: {experimentalFeatures: true}
     });
     browser.setMenu(null);
     browser.loadURL("file://" + __dirname + '/index.html');

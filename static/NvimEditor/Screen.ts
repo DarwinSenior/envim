@@ -11,37 +11,37 @@ import * as _ from 'lodash'
  *  and at the same time maintaining the state of the program
  */
 export class Screen {
-    static nullcode = ' ';
-    static nullhighlights = new Highlights();
-    static nullstyle = fromAttribute2Style({});
     static modeMouseMap = new Map([
         ['normal', 'block'],
         ['visual', 'block'],
         ['insert', 'ibeam'],
-        ['exe', 'underscore'],
+        ['cmdline', 'ibeam'],
     ]);
     // how many rows are there in the terminal
-    private height_: number;
+    private height_: number = 0;
     // how many columns are there in the terminal
-    private width_: number;
+    private width_: number = 0;
     // the current position of the mouse, (x, y) coordianate
-    private cu_pos_: [number, number];
+    private cu_pos_: [number, number] = [0, 0];
 
     // set the scroll region (top, bottom, left, right)
-    private scroll_region_: [number, number, number, number];
+    private scroll_region_: [number, number, number, number] = [0, 0, 0, 0];
 
     // set the fg color, mutable state
     // since there are 8 attributes, we could encode and
     // decode the attributes each with one bit
     // and we could get the result
-    private default_style_: DefaultStyle;
-    private current_style_: TextStyle;
+    private default_style_: DefaultStyle = new DefaultStyle((1 << 24) - 1, 0, (1 << 24) - 1);;
+    private nullcode = ' ';
+    private nullhighlights = new Highlights();
+    private nullstyle = fromAttribute2Style({}, this.default_style_);
+    private current_style_: TextStyle = this.nullstyle;
     // text internally was stored as the utf-8 string
     // we could then compare and change the corresponding
     // reprensentation
-    private texts_: string[][];
+    private texts_: string[][] = [];
     // highlights: Highlights[][];
-    private styles_: TextStyle[][];
+    private styles_: TextStyle[][] = [];
     // determine the current mode of the editor
 
     // this will be consumed, and after
@@ -51,14 +51,6 @@ export class Screen {
 
     private mode_: string;
     constructor() {
-        this.default_style_ = new DefaultStyle((1 << 24) - 1, 0, (1 << 24) - 1);
-        this.height_ = 0;
-        this.width_ = 0;
-        this.cu_pos_ = [0, 0];
-        this.scroll_region_ = [0, 0, 0, 0];
-        this.current_style_ = Screen.nullstyle;
-        this.texts_ = [];
-        this.styles_ = [];
     }
 
     /**
@@ -67,17 +59,18 @@ export class Screen {
      * it returns true if there is a visual bell waiting
      * to be consumed, and we also consume this visual bell
      */
-    consume_visualbell(){
+    consume_visualbell() {
         const visualbell = this.visualbell_;
         this.visualbell_ = false;
         return visualbell;
     }
 
-    get busy(): boolean{
+    get busy(): boolean {
         return this.busy_;
     }
 
     get cursor_shape(): string {
+        if (!Screen.modeMouseMap.has(this.mode_) && this.mode_) console.log("unhandled mode: "+ this.mode_);
         return Screen.modeMouseMap.get(this.mode_) || 'block';
     }
     get height(): number {
@@ -113,7 +106,7 @@ export class Screen {
                 let cur_style = linestyle[pos];
                 let counter = 1;
                 while (_.eq(cur_style, linestyle[pos + counter]))
-                    counter++
+                    counter++;
                 offset.push(counter);
                 textstyle.push(cur_style);
                 pos += counter;
@@ -153,8 +146,8 @@ export class Screen {
                     style.push(old_styles[y][x]);
                     text.push(old_texts[y][x]);
                 } else {
-                    style.push(Screen.nullstyle);
-                    text.push(Screen.nullcode);
+                    style.push(this.nullstyle);
+                    text.push(this.nullcode);
                 }
             }
             this.styles_.push(style);
@@ -170,11 +163,15 @@ export class Screen {
     }
 
     update_fg(fg: number) {
-        this.default_style_.foreground = fg;
+        if (fg == -1) {
+            this.default_style_.foreground = (1 << 24) - 1;
+        } else { this.default_style_.foreground = fg; }
     }
 
     update_bg(bg: number) {
-        this.default_style_.background = bg;
+        if (bg == -1) {
+            this.default_style_.background = 0;
+        } this.default_style_.background = bg;
     }
 
     update_sp(sp: number) {
@@ -182,7 +179,7 @@ export class Screen {
     }
 
     highlight_set(attrs: Object) {
-        this.current_style_ = fromAttribute2Style(attrs);
+        this.current_style_ = fromAttribute2Style(attrs, this.default_style_);
     }
 
     cursor_goto(row: number, col: number) {
@@ -219,27 +216,27 @@ export class Screen {
         this.cu_pos_ = [x + i, y];
     }
 
-    visual_bell(){
+    visual_bell() {
         this.visualbell_ = true;
     }
 
-    bell(){
+    bell() {
         this.visualbell_ = true;
     }
 
-    busy_start(){
+    busy_start() {
         this.busy_ = true;
     }
 
-    busy_stop(){
+    busy_stop() {
         this.busy_ = false;
     }
 
     private clearRange(top: number, bottom: number, left: number, right: number) {
         for (let y = top; y < bottom; y++) {
             for (let x = left; x < right; x++) {
-                this.texts_[y][x] = Screen.nullcode;
-                this.styles_[y][x] = Screen.nullstyle;
+                this.texts_[y][x] = this.nullcode;
+                this.styles_[y][x] = this.nullstyle;
             }
         }
     }
