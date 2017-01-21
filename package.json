@@ -21,6 +21,21 @@
     "electron": "electron ./build/main.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "MIT"
+  "author": "darwinsenior",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DarwinSenior/envim.git"
+  },
+  "keywords": [
+    "electron",
+    "neovim",
+    "gui",
+    "text-editor",
+    "typescript"
+  ],
+  "bugs": {
+    "url": "https://github.com/DarwinSenior/envim/issues"
+  },
+  "homepage": "https://github.com/DarwinSenior/envim#readme"
 }
