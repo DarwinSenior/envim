@@ -1,14 +1,41 @@
 import { Screen } from './Screen'
 import { Canvas } from './Canvas'
 import { Cursor } from './Cursor'
+import { Emitter } from './Event'
 import { createNvim } from './Process'
 import * as e from 'electron'
 import { Nvim, RPCValue } from 'promised-neovim-client'
 import './style.css'
 
+function eventFeedback(
+    emitter: Emitter,
+    nvim: Nvim
+) {
 
+    emitter.on('resize', ([width, height]: [number, number]) => {
+        console.log(width, height);
+        nvim.emit(`resize ${width} ${height}`, true);
+    });
+    let keypresstack = {
+        stack: [],
+        input: nvim.input('')
+    }
+    emitter.on('keypress', async (key: string) => {
+        if (key.length) keypresstack.stack.push(key);
+        keypresstack.input;
+        if (keypresstack.stack.length > 0) {
+            keypresstack.input = nvim.input(keypresstack.stack.join(''));
+            keypresstack.stack.length = 0;
+        }
+    });
+}
 
-async function attachUI(canvas: Canvas, nvim: Nvim, width: number, height: number) {
+function attachUI(
+    canvas: Canvas,
+    nvim: Nvim,
+    width: number,
+    height: number
+) {
     nvim.uiAttach(width, height, true);
     nvim.on('notification', (command: string, args: RPCValue[]) => {
         if (command == 'redraw') {
@@ -17,45 +44,41 @@ async function attachUI(canvas: Canvas, nvim: Nvim, width: number, height: numbe
     });
     const current_window = e.remote.getCurrentWindow();
 
-    let keypresstack = {
-        stack: [],
-        input: nvim.input('')
-    }
-    canvas.on('keypress', async (key: string) => {
-        if (key.length) keypresstack.stack.push(key);
-        await keypresstack.input;
-        if (keypresstack.stack.length > 0) {
-            keypresstack.input = nvim.input(keypresstack.stack.join(''));
-            keypresstack.stack.length = 0;
-        }
-    });
-
-    canvas.on('resize', ([width, height]: [number, number]) => {
-        console.log(width, height);
-        // current_window.setContentSize(width, height);
-    });
-
     window.onbeforeunload = () => {
         nvim.quit();
     }
+
+    canvas.window.addEventListener('resize', (evt: CustomEvent)=>{
+        console.log(evt.detail);
+        current_window.setContentSize(evt.detail[0], evt.detail[1]);
+    });
     nvim.on('disconnect', () => {
         window.onbeforeunload = undefined;
         nvim.removeAllListeners();
         current_window.close();
     });
+
 }
+
 document.addEventListener('DOMContentLoaded', () => {
     let editorScreen = new Screen();
     let editorCursor = new Cursor();
-    let editorCanvas = new Canvas(editorScreen, editorCursor);
+    let editorEmitter = new Emitter();
+    let editorCanvas = new Canvas(
+        editorScreen,
+        editorCursor,
+        editorEmitter
+    );
 
     document.body.appendChild(editorCanvas.window);
+    editorEmitter.init(editorCanvas.window);
     editorCursor.blink();
 
     e.ipcRenderer.send('render-ready');
     e.ipcRenderer.on('nvim-start', async (evt, [width, height]: [number, number]) => {
         const nvim = await createNvim();
-        await attachUI(editorCanvas, nvim, width, height);
+        attachUI(editorCanvas, nvim, width, height);
+        eventFeedback(editorEmitter, nvim);
     });
 
 });

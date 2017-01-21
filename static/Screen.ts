@@ -55,7 +55,7 @@ export class Screen {
         this.styles_ = [];
     }
 
-    get cursor_shape(): string{
+    get cursor_shape(): string {
         return Screen.modeMouseMap.get(this.mode_) || 'block';
     }
     get height(): number {
@@ -83,7 +83,7 @@ export class Screen {
     get styles(): [number[][], TextStyle[][]] {
         let textstyles = new Array<TextStyle[]>();
         let offsets = new Array<number[]>();
-        this.styles_.forEach(linestyle =>{
+        this.styles_.forEach(linestyle => {
             let offset = new Array<number>();
             let textstyle = new Array<TextStyle>();
             let pos = 0;
@@ -110,7 +110,7 @@ export class Screen {
         this.clearRange(0, this.height_, 0, this.width_);
     }
 
-    mode_change(mode: string){
+    mode_change(mode: string) {
         this.mode_ = mode;
     }
 
@@ -141,7 +141,7 @@ export class Screen {
     // clear EOL
     eol_clear() {
         const [x, y] = this.cu_pos_;
-        this.clearRange(y, y+1, x, this.width_);
+        this.clearRange(y, y + 1, x, this.width_);
     }
 
     update_fg(fg: number) {
@@ -171,25 +171,27 @@ export class Screen {
     scroll(count: number) {
         const [top, bottom, left, right] = this.scroll_region_;
         if (count > 0) {
-            for (let i = top; i < bottom - count; i++) {
-                this.copyLineRange(i, i + count, left, right);
+            for (let i = top + count; i < bottom; i++) {
+                this.copyLineRange(i - count, i, left, right);
             }
             this.clearRange(bottom - count, bottom, left, right);
         } else {
-            for (let i = top - count; i < bottom; i++) {
-                this.copyLineRange(i, i + count, left, right);
+            // easier if use positive number
+            count = -count;
+            for (let i = bottom-count-1; i >= top; i--) {
+                this.copyLineRange(i + count, i, left, right);
             }
-            this.clearRange(top, top - count, left, right);
+            this.clearRange(top, top + count, left, right);
         }
     }
 
     put(...text: string[]) {
         let [x, y] = this.cu_pos_;
         for (var i = 0; i < text.length; i++) {
-            this.texts_[y][x+i] = text[i];
-            this.styles_[y][x+i] = this.current_style_;
+            this.texts_[y][x + i] = text[i];
+            this.styles_[y][x + i] = this.current_style_;
         }
-        this.cu_pos_ = [x+i, y];
+        this.cu_pos_ = [x + i, y];
     }
 
     private clearRange(top: number, bottom: number, left: number, right: number) {
