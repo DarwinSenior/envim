@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noImplicitAny": false,
+    "allowJs": true,
+    "typeRoots": ["../node_modules/@types/"],
+    "outDir": "../build/"
+  },
+  "files": [
+      "main.ts"
+  ],
+  "execlude": [
+      "../node_modules/**/*.d.ts"
+  ]
+}

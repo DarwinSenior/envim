@@ -1,0 +1,60 @@
+body{
+    margin: 0;
+}
+x-row{
+    display: block;
+    white-space: pre;
+    font-family: inherit;
+    background-color: inherit;
+    color: inherit;
+    width: 100%;
+    overflow: hidden;
+    position: absolute;
+}
+x-canvas{
+    display: block;
+    position: relative;
+    height: auto;
+    font-variant-ligatures: none;
+    -webkit-font-smoothing: antialiased;
+}
+x-window{
+    font-family: "DajaVu Sans Mono",Inconsolata,monospace;
+    display: block;
+    font-size: 16px;
+    color: white;
+    line-height: 20px;
+    background-color: black;
+    text-decoration-color: white;
+    cursor: text;
+    margin: 0;
+    padding: 0;
+}
+x-cursor{
+    position: absolute;
+    z-index: 100;
+    border-width: 2px;
+    box-sizing: border-box;
+}
+x-cursor.blinked{
+    display: none;
+}
+x-cursor.block{
+    border-color: white;
+    background-color: white;
+    border-style: solid;
+    border-width: medium;
+    opacity: 0.9;
+}
+x-cursor.ibeam{
+    background-color: transparent;
+    border-left-width: medium;
+    border-left-style: solid;
+    border-left-color: white;
+}
+x-cursor.underline{
+    background-color: transparent;
+    border-bottom-width: medium;
+    border-bottom-style: solid;
+    border-bottom-color: white;
+}
