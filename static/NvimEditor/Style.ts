@@ -9,6 +9,26 @@ function color2string(color: Color): String {
     return `#${_.padStart(color.toString(16), 6, '0')}`;
 }
 
+/**
+ * we set those to be styles we care about
+ * and we will only respond to those styles
+ * since we might need to manually update
+ * the style later on
+ */
+export class ExternalStyle {
+    fontSize: number;
+    fontFamily: string;
+    lineHeight: number;
+    constructor(style: CSSStyleDeclaration){
+        this.fontSize = parseInt(style.fontSize);
+        this.fontFamily = style.fontFamily;
+        this.lineHeight = parseFloat(style.lineHeight);
+    }
+    get fontStyle(){
+        return this.fontSize+'px '+this.fontFamily;
+    }
+}
+
 export function fromAttribute2Style(attr: Object): TextStyle {
     return new TextStyle(
         attr['foreground'] || null,

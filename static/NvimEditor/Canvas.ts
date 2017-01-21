@@ -1,10 +1,9 @@
 import { Screen } from './Screen'
-import { TextStyle, DefaultStyle } from './Style'
+import { TextStyle, DefaultStyle, ExternalStyle } from './Style'
 import { textWidth, textHeight } from './Measure'
 import { Cursor } from './Cursor'
 import { Emitter } from './Event'
 import { Visual } from './Visual'
-import * as e from 'electron'
 import * as _ from 'lodash'
 
 
@@ -25,6 +24,7 @@ export class Canvas {
     private offsets_: number[][] = [];
     private height_: number = 0;
     private width_: number = 0;
+    private externalcss_: ExternalStyle;
 
     // this will calculate the size of each block
     private block_height_: number = 0;
@@ -39,7 +39,6 @@ export class Canvas {
         private emitter_: Emitter,
     ) {
         this.window_.appendChild(this.canvas_);
-        // this.canvas_.appendChild(this.cursor_.element);
         this.window_.appendChild(this.cursor_.element);
         this.window_.appendChild(this.visual_.element);
         this.emitter_.init(this.window_);
@@ -59,9 +58,10 @@ export class Canvas {
                 console.log('ignored instruction: ' + instruction);
             }
         });
-        this.updateContents();
+        this.updateScreen();
         this.updateStyle();
         this.updateCursor();
+        this.updateContents();
         this.updateEffects();
         // this.emitter_.fire('redraw', [new_texts, new_styles]);
     }
@@ -69,43 +69,27 @@ export class Canvas {
     private updateScreen() {
         // in this case, we probably need to redraw everything.
         // we first calcuate the size of our elements
-        this.height_ = this.screen_.height;
-        this.width_ = this.screen_.width;
+        if (this.height_ != this.screen_.height || this.width_ != this.screen_.width) {
+            this.height_ = this.screen_.height;
+            this.width_ = this.screen_.width;
 
-        const style = window.getComputedStyle(this.canvas_);
-        this.block_width_ = textWidth(style.fontSize + " " + style.fontFamily, 1);
-        // if (style.lineHeight == 'normal') style.lineHeight = '1.2';
-        this.block_height_ = parseFloat(style.lineHeight) - 0.1;
-        // console.log(this.rows_[0].clientHeight);
-        this.cursor_.setCursorSize(this.block_width_, this.block_height_);
-        this.emitter_.setCursorSize(this.block_width_, this.block_height_);
-        this.window_.style.width = `${this.block_width_ * this.width_}px`;
-        this.window_.style.height = `${this.block_height_ * this.height_}px`;
-
-        // we then position everything
-        this.rows_.forEach(row => this.canvas_.removeChild(row));
-        this.rows_.length = 0;
-        for (let i = 0; i < this.height_; i++) {
-            let row = <HTMLDivElement>document.createElement('x-row');
-            // row.style.top = i * this.block_height_ + 'px';
-            // row.style.left = '0';
-            this.rows_.push(row);
+            // we then position everything
+            this.rows_.forEach(row => this.canvas_.removeChild(row));
+            this.rows_.length = 0;
+            for (let i = 0; i < this.height_; i++) {
+                let row = <HTMLDivElement>document.createElement('x-row');
+                this.rows_.push(row);
+            }
+            this.rows_.forEach(row => this.canvas_.appendChild(row));
         }
-        this.rows_.forEach(row => this.canvas_.appendChild(row));
-        e.remote.getCurrentWindow().setContentSize(
-            Math.ceil(this.block_width_ * this.width_),
-            Math.ceil(this.block_height_* this.height_)
-        );
-        // this.window_.dispatchEvent(new CustomEvent('resize', {
-        //     detail: [
-        //         Math.ceil(this.block_width_ * this.width_),
-        //         Math.ceil(this.block_height_ * this.height_)
-        //     ]}));
-        // this.emitter_.fire(
-        //     'resize', [
-        //         this.block_width_ * this.width_,
-        //         this.block_height_ * this.height_
-        //     ]);
+        // update the window size after we are done with this
+        // since there is a possibility that the block size will
+        // also be updated
+        setTimeout(() => this.window_.dispatchEvent(new CustomEvent('resize', {
+            detail: [
+                Math.floor(this.width_ * this.block_width_),
+                Math.floor(this.height_ * this.block_height_)
+            ]})), 0);
     }
     static testspan = <HTMLSpanElement>document.createElement('span');
     static spantext(content: string, style: TextStyle) {
@@ -114,7 +98,7 @@ export class Canvas {
         return Canvas.testspan.outerHTML;
     }
 
-    private updateContents(){
+    private updateContents() {
         const new_texts = this.screen_.texts;
         const [new_offsets, new_styles] = this.screen_.styles;
         for (let i = 0; i < this.height_; i++) {
@@ -155,14 +139,15 @@ export class Canvas {
      */
     private updateStyle() {
         // first we update the text style
-        let newstyle = this.screen_.default_style.toString();
-        if (this.canvas_.style.cssText != newstyle) {
-            this.canvas_.style.cssText = newstyle;
-        }
-        // then we adjust the outer size height and width
-        if (this.width_ != this.screen_.width
-            || this.height_ != this.screen_.height) {
-            this.updateScreen();
+        const css = new ExternalStyle(window.getComputedStyle(this.canvas_));
+        if (!_.isEqual(css, this.externalcss_)) {
+            this.externalcss_ = css;
+            this.block_width_ = textWidth(css.fontStyle, 1);
+            this.block_height_ = css.lineHeight;
+            this.cursor_.setCursorSize(this.block_width_, this.block_height_);
+            this.emitter_.setCursorSize(this.block_width_, this.block_height_);
+            this.window_.style.width = `${this.block_width_ * this.width_}px`;
+            this.window_.style.height = `${this.block_height_ * this.height_}px`;
         }
     }
 
@@ -188,10 +173,10 @@ export class Canvas {
      *
      */
     private updateEffects() {
-        if (this.screen_.consume_visualbell()){
+        if (this.screen_.consume_visualbell()) {
             this.visual_.bell();
         }
-        if (this.screen_.busy){
+        if (this.screen_.busy) {
             this.visual_.busy();
         } else {
             this.visual_.available();

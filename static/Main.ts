@@ -1,12 +1,12 @@
-import { Screen } from './Screen'
-import { Canvas } from './Canvas'
-import { Cursor } from './Cursor'
-import { Visual } from './Visual'
-import { Emitter } from './Event'
-import { createNvim } from './Process'
-import * as e from 'electron'
+import { Screen } from './NvimEditor/Screen'
+import { Canvas } from './NvimEditor/Canvas'
+import { Cursor } from './NvimEditor/Cursor'
+import { Visual } from './NvimEditor/Visual'
+import { Emitter } from './NvimEditor/Event'
+import { createNvim } from './NvimEditor/Process'
 import { Nvim, RPCValue } from 'promised-neovim-client'
 import './style.css'
+import * as e from 'electron'
 
 function eventFeedback(
     emitter: Emitter,
@@ -14,7 +14,6 @@ function eventFeedback(
 ) {
 
     emitter.on('resize', ([width, height]: [number, number]) => {
-        // nvim.emit(`resize ${width} ${height}`, true);
         nvim.uiTryResize(width, height, false);
     });
     let keypresstack = {
@@ -47,10 +46,11 @@ function attachUI(
     window.onbeforeunload = () => {
         nvim.quit();
     }
-    // canvas.window.addEventListener('resize', function fn(evt: CustomEvent){
-    //     current_window.setContentSize(evt.detail[0], evt.detail[1]);
-    //     canvas.window.removeEventListener('resize', fn);
-    // });
+    canvas.window.addEventListener('resize', function fn(evt: CustomEvent){
+        let [width, height] = evt.detail;
+        current_window.setContentSize(width, height);
+        // canvas.window.removeEventListener('resize', fn);
+    });
     nvim.on('disconnect', () => {
         window.onbeforeunload = undefined;
         nvim.removeAllListeners();

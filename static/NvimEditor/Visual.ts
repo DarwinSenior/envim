@@ -32,7 +32,6 @@ export class Visual {
     private prevent_event(evt) {
         // this event will prevent the window to recieve any events
         if (this.intercept_events_) {
-            console.log('intercepted');
             evt.stopPropagation();
         }
     }
