@@ -115,27 +115,30 @@ export class Screen {
     }
 
     resize(width: number, height: number) {
-        if (this.height_ < height) {
-            for (let i = this.height_; i < height; i++) {
-                this.styles_.push(_.fill(Array(this.width_), Screen.nullstyle));
-                this.texts_.push(_.fill(Array(this.width_), Screen.nullcode));
-            }
-        } else {
-            this.styles_.length = height;
-        }
-        if (this.width_ < width) {
-            this.styles_.forEach(i =>
-                _.range(this.width_, width).forEach(_ =>
-                    i.push(Screen.nullstyle)));
-            this.texts_.forEach(i =>
-                _.range(this.width_, width).forEach(_ =>
-                    i.push(Screen.nullcode)));
-        } else {
-            this.styles_.forEach(i => i.length = width);
-            this.texts_.forEach(i => i.length = width);
-        }
+        const old_styles = this.styles_;
+        const old_texts = this.texts_;
+        const old_height = this.height_;
+        const old_width = this.width_;
         this.height_ = height;
         this.width_ = width;
+        this.styles_ = [];
+        this.texts_ = [];
+        for (let y = 0; y < height; y++) {
+            let style = [];
+            let text = [];
+            for (let x = 0; x < width; x++) {
+                if (x < old_width && y < old_height) {
+                    style.push(old_styles[y][x]);
+                    text.push(old_texts[y][x]);
+                } else {
+                    style.push(Screen.nullstyle);
+                    text.push(Screen.nullcode);
+                }
+            }
+            this.styles_.push(style);
+            this.texts_.push(text);
+        }
+        this.cu_pos_ = [0, 0];
     }
 
     // clear EOL

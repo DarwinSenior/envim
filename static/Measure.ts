@@ -15,9 +15,10 @@ interface Relative{
 
 type CSSValue = Absolute | Relative;
 
-export function textWidth(font: string, count?: number): number{
+export function textWidth(font: string, count: number | string): number{
     ctx_.font = font;
-    return ctx_.measureText(_.repeat('1234567890', count)).width/10;
+    if (typeof count === 'number') count = _.repeat('a', count);
+    return ctx_.measureText(count).width;
 }
 // TODO: get support for all the style possibility
 export function textHeight(fontsize: string, line_height: string): number{

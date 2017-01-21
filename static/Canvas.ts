@@ -55,25 +55,14 @@ export class Canvas {
                 console.log('ignored instruction: ' + instruction);
             }
         });
-        // if size changed, resize the screen
+        this.updateContents();
         this.updateStyle();
         this.updateCursor();
-        const new_texts = this.screen_.texts;
-        const [new_offsets, new_styles] = this.screen_.styles;
-        for (let i = 0; i < this.width_; i++) {
-            if (!_.isEqual(this.texts_[i], new_texts[i])
-                || !_.isEqual(this.styles_[i], new_styles[i])
-                || !_.isEqual(this.offsets_[i], new_offsets[i])) {
-                this.texts_[i] = new_texts[i];
-                this.styles_[i] = new_styles[i];
-                this.offsets_[i] = new_offsets[i];
-                this.updateLine(i);
-            }
-        }
+        this.updateEffects();
         // this.emitter_.fire('redraw', [new_texts, new_styles]);
     }
 
-    updateScreen() {
+    private updateScreen() {
         // in this case, we probably need to redraw everything.
         // we first calcuate the size of our elements
         this.height_ = this.screen_.height;
@@ -81,7 +70,8 @@ export class Canvas {
 
         const style = window.getComputedStyle(this.canvas_);
         this.block_width_ = textWidth(style.fontSize + " " + style.fontFamily, 1);
-        this.block_height_ = 20;
+        // if (style.lineHeight == 'normal') style.lineHeight = '1.2';
+        this.block_height_ = parseFloat(style.lineHeight) - 0.1;
         // console.log(this.rows_[0].clientHeight);
         this.cursor_.setCursorSize(this.block_width_, this.block_height_);
         this.emitter_.setCursorSize(this.block_width_, this.block_height_);
@@ -93,17 +83,20 @@ export class Canvas {
         this.rows_.length = 0;
         for (let i = 0; i < this.height_; i++) {
             let row = <HTMLDivElement>document.createElement('x-row');
-            row.textContent = _.repeat('a', this.width_);
-            row.style.top = i * this.block_height_ + 'px';
-            row.style.left = '0';
+            // row.style.top = i * this.block_height_ + 'px';
+            // row.style.left = '0';
             this.rows_.push(row);
         }
         this.rows_.forEach(row => this.canvas_.appendChild(row));
-        this.window_.dispatchEvent(new CustomEvent('resize', {
-            detail: [
-                Math.ceil(this.block_width_ * this.width_),
-                Math.ceil(this.block_height_ * this.height_)
-            ]}));
+        e.remote.getCurrentWindow().setContentSize(
+            Math.ceil(this.block_width_ * this.width_),
+            Math.ceil(this.block_height_* this.height_)
+        );
+        // this.window_.dispatchEvent(new CustomEvent('resize', {
+        //     detail: [
+        //         Math.ceil(this.block_width_ * this.width_),
+        //         Math.ceil(this.block_height_ * this.height_)
+        //     ]}));
         // this.emitter_.fire(
         //     'resize', [
         //         this.block_width_ * this.width_,
@@ -132,7 +125,12 @@ export class Canvas {
         row.innerHTML = innertext.join('');
     }
 
-    updateStyle() {
+    /**
+     *  it updates when the external style change
+     *  it also tries to update the screen since
+     *  when there is an resize event
+     */
+    private updateStyle() {
         // first we update the text style
         let newstyle = this.screen_.default_style.toString();
         if (this.canvas_.style.cssText != newstyle) {

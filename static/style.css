@@ -1,7 +1,9 @@
-body{
+body {
     margin: 0;
+    overflow: hidden;
 }
-x-row{
+
+x-row {
     display: block;
     white-space: pre;
     font-family: inherit;

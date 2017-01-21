@@ -47,32 +47,33 @@ function attachUI(
     window.onbeforeunload = () => {
         nvim.quit();
     }
-
-    canvas.window.addEventListener('resize', (evt: CustomEvent)=>{
-        console.log(evt.detail);
-        current_window.setContentSize(evt.detail[0], evt.detail[1]);
-    });
+    // canvas.window.addEventListener('resize', function fn(evt: CustomEvent){
+    //     current_window.setContentSize(evt.detail[0], evt.detail[1]);
+    //     canvas.window.removeEventListener('resize', fn);
+    // });
     nvim.on('disconnect', () => {
         window.onbeforeunload = undefined;
         nvim.removeAllListeners();
         current_window.close();
     });
-
+    nvim.uiAttach(width, height, true);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     let editorScreen = new Screen();
     let editorCursor = new Cursor();
     let editorEmitter = new Emitter();
+    let editorVisual = new Visual();
     let editorCanvas = new Canvas(
         editorScreen,
         editorCursor,
+        editorVisual,
         editorEmitter
     );
 
     document.body.appendChild(editorCanvas.window);
-    editorEmitter.init(editorCanvas.window);
     editorCursor.blink();
+    window['visuals'] = editorVisual;
 
     e.ipcRenderer.send('render-ready');
     e.ipcRenderer.on('nvim-start', async (evt, [width, height]: [number, number]) => {
