@@ -29,7 +29,7 @@ x-window {
     font-family: 'Droid Sans Mono for Powerline', "DajaVu Sans Mono", Inconsolata, monospace;
     position: relative;
     display: block;
-    font-size: 17px;
+    /* font-size: 16px; */
     color: white;
     line-height: 1.2;
     background-color: black;
@@ -56,10 +56,10 @@ x-cursor.blinked {
 
 @keyframes blink-animation {
     from {
-        opacity: 0.9
+        opacity: 0.9;
     }
     to {
-        opacity: 0.1
+        opacity: 0.1;
     }
 }
 
@@ -150,4 +150,14 @@ x-visual.available x-loader {
         transform: scale(1.2);
         opacity: 0;
     }
+}
+
+x-menu{
+    box-shadow: 2px 2px 5px #BDBDBD;
+    position: absolute;
+}
+
+x-menu > x-menu-list {
+    display: inline-block;
+    width: 100%;
 }

@@ -4,7 +4,10 @@ import { Cursor } from './NvimEditor/Cursor'
 import { Visual } from './NvimEditor/Visual'
 import { Emitter } from './NvimEditor/Event'
 import { createNvim } from './NvimEditor/Process'
-import { Nvim, RPCValue } from 'neovim-client/promise'
+import { PluginRegister } from './NvimLiveLoadCSS/Util'
+import { loadReloadCSS } from './NvimLiveLoadCSS/ReloadCSS'
+
+import { Nvim, RPCValue } from 'promised-neovim-client'
 import './style.css'
 import * as e from 'electron'
 
@@ -45,11 +48,6 @@ function attachUI(
     window.onbeforeunload = () => {
         nvim.quit();
     }
-    // canvas.window.addEventListener('resize', function fn(evt: CustomEvent){
-    //     let [width, height] = evt.detail;
-    //     current_window.setContentSize(width, height);
-    //     // canvas.window.removeEventListener('resize', fn);
-    // });
 
     const current_window = e.remote.getCurrentWindow();
     nvim.on('disconnect', () => {
@@ -58,6 +56,14 @@ function attachUI(
         current_window.close();
     });
     nvim.uiAttach(width, height, true);
+}
+
+
+function registerPlugins(nvim: Nvim, pluginloaders: any[]){
+    const register = new PluginRegister(nvim, 1);
+    const browser = e.remote.getCurrentWindow();
+    console.log(register, pluginloaders);
+    pluginloaders.forEach(loader => loader(register, browser));
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -71,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
         editorVisual,
         editorEmitter
     );
-
+    editorCanvas.window.id = 'editor';
     document.body.appendChild(editorCanvas.window);
     editorCursor.blink();
     window['_visual'] = editorVisual;
@@ -84,6 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const nvim = await createNvim();
         attachUI(editorCanvas, nvim, width, height);
         eventFeedback(editorEmitter, nvim);
+        registerPlugins(nvim, [loadReloadCSS]);
     });
 
 });

@@ -20,9 +20,14 @@ export class Cursor {
         this.cursor_style = 'block'
     }
 
+    attach() {
+
+    }
+
     get element() {
         return this.element_;
     }
+
 
     static cursor_styles = ['block', 'underline', 'ibeam', 'custom'];
     set cursor_style(style: string) {
