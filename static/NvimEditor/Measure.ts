@@ -17,8 +17,13 @@ type CSSValue = Absolute | Relative;
 
 export function textWidth(font: string, count: number | string): number{
     ctx_.font = font;
-    if (typeof count === 'number') count = _.repeat('a', count);
-    return ctx_.measureText(count).width;
+    let text: string;
+    if (typeof count === 'number') {
+        text = _.repeat('a', count);
+    } else {
+        text = count;
+    }
+    return ctx_.measureText(text).width;
 }
 // TODO: get support for all the style possibility
 export function textHeight(fontsize: string, line_height: string): number{

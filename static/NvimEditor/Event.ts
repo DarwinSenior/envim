@@ -15,25 +15,25 @@ const CanvasEventTypes = <CanvasEventType[]>[
 export const intercepted_events = ['keydown', 'mousedown', 'mousewheel'];
 export class Emitter {
     private emitter_ = new EventEmitter();
-    private window_: HTMLDivElement;
     private block_height_ = 0;
     private block_width_ = 0;
     private rows_ = 0;
     private cols_ = 0;
+    private canvas_: HTMLDivElement;
 
     // for dragging event
     private ondrag = false;
-    init(window_: HTMLDivElement) {
-        this.window_ = window_;
+    init(canvas_: HTMLDivElement) {
         // so that the window is indexable
-        this.window_.tabIndex = 1;
-        this.window_.addEventListener('keydown', (evt: KeyboardEvent) => {
+        this.canvas_ = canvas_;
+        this.canvas_.tabIndex = 1;
+        this.canvas_.addEventListener('keydown', (evt: KeyboardEvent) => {
             let key = keyevt2nvimkey(evt);
             if (key) {
                 this.emitter_.emit('keypress', key);
             }
         });
-        this.window_.addEventListener('mousedown', (evt: MouseEvent) => {
+        this.canvas_.addEventListener('mousedown', (evt: MouseEvent) => {
             const keyname = mouseevt2nvimkey(evt);
             const x = Math.floor(evt.clientX / this.block_width_);
             const y = Math.floor(evt.clientY / this.block_height_);
@@ -41,7 +41,7 @@ export class Emitter {
             this.ondrag = true;
             this.emitter_.emit('keypress', key);
         });
-        this.window_.addEventListener('mousemove', (evt: MouseEvent) => {
+        this.canvas_.addEventListener('mousemove', (evt: MouseEvent) => {
             if (this.ondrag) {
                 const keyname = mouseevt2nvimkey(evt);
                 const x = Math.floor(evt.clientX / this.block_width_);
@@ -50,20 +50,19 @@ export class Emitter {
                 this.emitter_.emit('keypress', key);
             }
         });
-        this.window_.addEventListener('mousewheel', (evt: MouseWheelEvent) => {
+        this.canvas_.addEventListener('mousewheel', (evt: MouseWheelEvent) => {
             const keyname = mousewhellevt2nvimkey(evt);
             const x = Math.floor(evt.clientX / this.block_width_);
             const y = Math.floor(evt.clientY / this.block_height_);
             const key = `${keyname}<${x},${y}>`;
             this.emitter_.emit('keypress', key);
-        }, <any>{ passive: true });
-        let unfocus = () => this.ondrag = false;
-        this.window_.addEventListener('mouseup', unfocus);
-        this.window_.addEventListener('blur', unfocus);
-        this.window_.addEventListener('mouseout', unfocus);
+        });
+        const unfocus = (evt: MouseEvent) => {this.ondrag = false; console.log(evt.type)};
+        this.canvas_.onmouseup = unfocus;
+        // this.canvas_.onmouseleave = unfocus;
         window.addEventListener('resize', (evt) => {
-            const rows = Math.ceil(window.innerHeight / this.block_height_);
-            const cols = Math.ceil(window.innerWidth / this.block_width_);
+            const rows = Math.round(this.canvas_.clientHeight / this.block_height_);
+            const cols = Math.round(this.canvas_.clientWidth / this.block_width_);
             if (this.rows_ != rows || this.cols_ != cols) {
                 this.rows_ = rows;
                 this.cols_ = cols;
@@ -73,8 +72,8 @@ export class Emitter {
     }
     // update the current size
     setCurrentSize(block_width: number, block_height: number) {
-        const new_rows = Math.ceil(window.innerHeight / block_height);
-        const new_cols = Math.ceil(window.innerWidth / block_width);
+        const new_rows = Math.round(this.canvas_.clientHeight / block_height);
+        const new_cols = Math.round(this.canvas_.clientWidth / block_width);
         this.block_width_ = block_width;
         this.block_height_ = block_height;
         if (new_rows != this.rows_ || new_cols != this.cols_){

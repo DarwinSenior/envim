@@ -4,9 +4,9 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "noImplicitAny": false,
-    "allowJs": true,
     "typeRoots": ["../node_modules/@types/"],
-    "outDir": "../dist/"
+    "outDir": "../dist/",
+    "sourceMap": true
   },
   "include": [
       "**/*.ts"

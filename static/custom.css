@@ -1,0 +1,6 @@
+@import 'http://cdn.jsdelivr.net/font-hack/2.020/css/hack-extended.min.css';
+x-canvas {
+    font-size: 16px;
+    line-height: 1.2;
+    font-family: Hack, monospace;
+}

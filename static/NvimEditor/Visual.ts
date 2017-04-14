@@ -14,12 +14,11 @@ export class Visual {
 
     constructor() {
         this.intercept_events_ = false;
-        intercepted_events.forEach(evt =>
-            this.element_.addEventListener(evt, this.prevent_event.bind(this)));
+        this.element_.tabIndex = -1;
         this.element_.appendChild(document.createElement('x-loader'))
         this.element_.addEventListener('animationend',
             (evt: AnimationEvent) => {
-                if (evt.animationName == Visual.bell_animation){
+                if (evt.animationName == Visual.bell_animation) {
                     this.element_.classList.remove(Visual.bell_class);
                 }
             });
@@ -29,13 +28,6 @@ export class Visual {
         return this.element_;
     }
 
-    private prevent_event(evt) {
-        // this event will prevent the window to recieve any events
-        if (this.intercept_events_) {
-            evt.stopPropagation();
-        }
-    }
-
     bell() {
         this.element_.classList.add(Visual.bell_class);
     }
@@ -43,7 +35,6 @@ export class Visual {
      *
      */
     busy() {
-        this.intercept_events_ = true;
         this.element_.classList.add(Visual.busy_class);
         this.element_.classList.remove(Visual.available_class);
     }
@@ -51,7 +42,6 @@ export class Visual {
      *
      */
     available() {
-        this.intercept_events_ = false;
         this.element_.classList.remove(Visual.busy_class);
         this.element_.classList.add(Visual.available_class);
     }

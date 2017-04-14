@@ -13,30 +13,39 @@ x-row {
     overflow: hidden;
 }
 
-x-canvas {
-    display: block;
-    height: auto;
-    font-variant-ligatures: none;
-    -webkit-font-smoothing: antialiased;
-}
-
 @font-face {
     font-family: 'Droid Sans Mono for Powerline';
     src: local('Droid Sans Mono for Powerline'), url(https://cdn.rawgit.com/JayXon/powerline-web-fonts/master/DroidSansMonoforPowerline.woff2) format("woff2")
 }
 
-x-window {
-    font-family: 'Droid Sans Mono for Powerline', "DajaVu Sans Mono", Inconsolata, monospace;
-    position: relative;
+x-canvas {
     display: block;
-    /* font-size: 16px; */
+    height: 100%;
+    width: 100%;
+    font-variant-ligatures: none;
+    -webkit-font-smoothing: antialiased;
+    font-size: 16px;
     color: white;
     line-height: 1.2;
     background-color: black;
     text-decoration-color: white;
+    font-family: 'Droid Sans Mono for Powerline', "DajaVu Sans Mono", Inconsolata, monospace;
+    -webkit-user-select: none;
+}
+
+x-canvas:focus{
+    outline: none;
+}
+
+
+x-window {
+    position: relative;
+    display: block;
     margin: 0;
     padding: 0;
     overflow: hidden;
+    width: 100vw;
+    height: 100vh;
 }
 
 x-cursor {
@@ -45,6 +54,7 @@ x-cursor {
     border-width: 2px;
     box-sizing: border-box;
 }
+
 
 x-cursor.blinked {
     animation-duration: 1s;
@@ -63,6 +73,9 @@ x-cursor.blinked {
     }
 }
 
+x-cursor.hide {
+    display: none;
+}
 x-cursor.block {
     border-color: white;
     background-color: white;
@@ -92,6 +105,7 @@ x-visual {
     top: 0;
     left: 0;
     cursor: text;
+    pointer-events: none;
 }
 
 x-visual.bell {
@@ -103,21 +117,11 @@ x-visual.bell {
         background-color: rgba(0, 0, 0, 0);
     }
     50% {
-        background-color: rgba(0, 0, 0, 0.5);
+        background-color: rgba(0, 0, 0, 0.3);
     }
     100% {
         background-color: rgba(0, 0, 0, 0);
     }
-}
-
-x-visual.busy {
-    /* background-color: rgba(0, 0, 0, 0.5); */
-    /* transition: background-color 0.5s; */
-}
-
-x-visual.available {
-    /* background-color: rgba(0, 0, 0, 0); */
-    /* transition: background-color 0.5s; */
 }
 
 x-visual.busy x-loader {
@@ -160,4 +164,11 @@ x-menu{
 x-menu > x-menu-list {
     display: inline-block;
     width: 100%;
+}
+
+x-term {
+    position: relative;
+    height: 100vh;
+    width: 100vw;
+    display: block;
 }

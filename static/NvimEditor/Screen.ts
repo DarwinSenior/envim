@@ -1,4 +1,3 @@
-import { Highlights } from './Highlights'
 import { fromAttribute2Style, TextStyle, DefaultStyle } from './Style'
 import * as _ from 'lodash'
 /**
@@ -16,6 +15,7 @@ export class Screen {
         ['visual', 'block'],
         ['insert', 'ibeam'],
         ['cmdline', 'ibeam'],
+        ['terminal', 'hide'],
     ]);
     // how many rows are there in the terminal
     private height_: number = 0;
@@ -33,14 +33,13 @@ export class Screen {
     // and we could get the result
     private default_style_: DefaultStyle = new DefaultStyle((1 << 24) - 1, 0, (1 << 24) - 1);;
     private nullcode = ' ';
-    private nullhighlights = new Highlights();
     private nullstyle = fromAttribute2Style({}, this.default_style_);
     private current_style_: TextStyle = this.nullstyle;
     // text internally was stored as the utf-8 string
     // we could then compare and change the corresponding
     // reprensentation
+    private dirty_: boolean[] = [];
     private texts_: string[][] = [];
-    // highlights: Highlights[][];
     private styles_: TextStyle[][] = [];
     // determine the current mode of the editor
 
@@ -70,7 +69,7 @@ export class Screen {
     }
 
     get cursor_shape(): string {
-        if (!Screen.modeMouseMap.has(this.mode_) && this.mode_) console.log("unhandled mode: "+ this.mode_);
+        if (!Screen.modeMouseMap.has(this.mode_) && this.mode_) console.log("unhandled mode: " + this.mode_);
         return Screen.modeMouseMap.get(this.mode_) || 'block';
     }
     get height(): number {
@@ -81,7 +80,8 @@ export class Screen {
     }
     // the texts is an array of strings that each string represent each line
     get texts(): string[] {
-        let texts = this.texts_.map((chars) => chars.join(''));
+        let texts = this.texts_.map(
+            (chars, i) => this.dirty_[i] ? chars.join('') : null);
         return texts;
     }
 
@@ -98,7 +98,12 @@ export class Screen {
     get styles(): [number[][], TextStyle[][]] {
         let textstyles = new Array<TextStyle[]>();
         let offsets = new Array<number[]>();
-        this.styles_.forEach(linestyle => {
+        this.styles_.forEach((linestyle, i) => {
+            if (!this.dirty_[i]) {
+                textstyles.push(null);
+                offsets.push(null);
+                return;
+            }
             let offset = new Array<number>();
             let textstyle = new Array<TextStyle>();
             let pos = 0;
@@ -123,6 +128,10 @@ export class Screen {
     // remove all the texts on the screen
     clear() {
         this.clearRange(0, this.height_, 0, this.width_);
+    }
+
+    clean() {
+        this.dirty_.fill(false);
     }
 
     mode_change(mode: string) {
@@ -154,6 +163,7 @@ export class Screen {
             this.texts_.push(text);
         }
         this.cu_pos_ = [0, 0];
+        this.dirty_ = new Array(height).fill(true);
     }
 
     // clear EOL
@@ -214,6 +224,7 @@ export class Screen {
             this.styles_[y][x + i] = this.current_style_;
         }
         this.cu_pos_ = [x + i, y];
+        this.dirty_[y] = true;
     }
 
     visual_bell() {
@@ -239,6 +250,7 @@ export class Screen {
                 this.styles_[y][x] = this.nullstyle;
             }
         }
+        this.dirty_.fill(true, top, bottom);
     }
 
     private copyLineRange(ydst: number, ysrc: number, start: number, end: number) {
@@ -246,5 +258,6 @@ export class Screen {
             this.texts_[ydst][x] = this.texts_[ysrc][x];
             this.styles_[ydst][x] = this.styles_[ysrc][x];
         }
+        this.dirty_[ydst] = true;
     }
 }

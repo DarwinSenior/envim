@@ -18,6 +18,7 @@ export class Cursor {
         // this will keep blinking until it is detached from the dom
         this.element_ = <HTMLDivElement>document.createElement('x-cursor');
         this.cursor_style = 'block'
+        this.element_.tabIndex = -1;
     }
 
     attach() {
@@ -29,7 +30,7 @@ export class Cursor {
     }
 
 
-    static cursor_styles = ['block', 'underline', 'ibeam', 'custom'];
+    static cursor_styles = ['block', 'underline', 'ibeam', 'custom', 'hide'];
     set cursor_style(style: string) {
         if (style != this.cursor_style_
             && _.includes(Cursor.cursor_styles, style)) {

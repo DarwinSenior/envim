@@ -16,8 +16,11 @@ module.exports = {
         },{
             test: /\.css$/,
             loader: 'style!css',
-        }]
+        },]
     },
+    externals: [{
+        'pty.js': 'commonjs pty.js'
+    }],
     devtool: 'source-map',
     plugins: [new webpack.NoErrorsPlugin()],
     target: 'electron-renderer'

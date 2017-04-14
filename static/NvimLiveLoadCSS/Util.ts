@@ -5,7 +5,6 @@ export class PluginRegister {
     request_dispatch_: Map<string, Function> = new Map();
     constructor(
         private nvim: Nvim, // nvim instance
-        private channel: number, // the channel number, I believe it to be 1
     ) {
         nvim.on('notification', this.notification.bind(this));
         nvim.on('request', this.request.bind(this));
@@ -27,7 +26,7 @@ export class PluginRegister {
 
     register_command(command: string, listener: (nvim: Nvim, ...args: string[])=>void, cmdflags?: string){
         cmdflags = cmdflags || '';
-        this.nvim.command(`command! -nargs=* ${cmdflags} ${command} call rpcnotify(${this.channel}, "${command}", <f-args>)`, true);
+        this.nvim.command(`command! -nargs=* ${cmdflags} ${command} call rpcnotify(g:envim_notify_number, "${command}", <f-args>)`, true);
         this.notification_dispatcher_.set(command, listener);
         console.log(this.notification_dispatcher_);
     }

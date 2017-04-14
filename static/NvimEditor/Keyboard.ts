@@ -7,6 +7,7 @@
 // import {range} from 'lodash'
 let special_keys = new Map<[number, boolean, boolean, boolean, boolean], string>(
     [
+
     ]);
 
 // insert the key here and we will
@@ -14,7 +15,8 @@ let special_keys = new Map<[number, boolean, boolean, boolean, boolean], string>
 let keymap = new Map([
     ['Escape', 'Esc'],
     ['ArrowUp', 'Up'], ['ArrowDown', 'Down'], ['ArrowLeft', 'Left'],
-    ['ArrowRight', 'Right']
+    ['ArrowRight', 'Right'],
+    ['<', 'lt']
 ]);
 const ctrlkeys = new Set([
     'Control', 'Alt', 'Meta'

@@ -1,8 +1,8 @@
 import * as _ from 'lodash'
 
-type Color = number;
-type Maybe<T> = T | void;
-type MaybeColor = Maybe<Color>;
+export type Color = number;
+export type Maybe<T> = T | void;
+export type MaybeColor = Maybe<Color>;
 
 function color2string(color: Color): String {
     if (color == -1) return 'inherit';
@@ -68,9 +68,6 @@ export class TextStyle {
         private undercurl: boolean,
         private defaultstyle: DefaultStyle
     ) {
-        if (this.undercurl){
-            console.log(this)
-        }
     }
     toString(): string {
         let attrs = [];
